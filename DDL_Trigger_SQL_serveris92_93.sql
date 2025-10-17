@@ -53,3 +53,33 @@ BEGIN
 ROLLBACK
 PRINT 'Te tegite ümbernimetuse'
 END
+
+-- 93. Server-Scoped DDL triggerid.rtf
+
+-- Serveri-vahemikus olevad DDL triggerid
+-- Andmebaasi ulatuses olev trigger, mis takistab tabelite loomist, muutmist ja kustutamist
+CREATE TRIGGER tr_DatabaseScopeTrigger 
+ON Database
+FOR CREATE_TABLE, ALTER_TABLE, DROP_TABLE
+AS
+BEGIN
+ROLLBACK
+PRINT 'Tabelite loomine, muutmine ja kustutamine selles andmebaasis pole lubatud'
+END
+
+-- Serveri ulatuses olev trigger (ALL SERVER)
+CREATE TRIGGER tr_ServerScopeTrigger
+ON ALL SERVER
+FOR CREATE_TABLE, ALTER_TABLE, DROP_TABLE
+AS
+BEGIN
+ROLLBACK
+PRINT 'Tabelite loomine, muutmine ja kustutamine serveri tasandil pole lubatud'
+END
+
+-- Serveri triggeri keelamine
+DISABLE TRIGGER tr_ServerScopeTrigger ON ALL SERVER
+-- Serveri triggeri lubamine
+ENABLE TRIGGER tr_ServerScopeTrigger ON ALL SERVER
+-- Serveri triggeri kustutamine
+DROP TRIGGER tr_ServerScopeTrigger ON ALL SERVER
