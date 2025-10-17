@@ -53,3 +53,28 @@ UNIQUE NONCLUSTERED (Title)
 CREATE UNIQUE INDEX IX_dimEmployee_City
 ON dimEmployee(Title)
 WITH IGNORE_DUP_KEY
+
+--38
+--Loo mitte-klastreeritud indeks Salary veerule:
+create nonclustered index ix_tblemployee_sickleavehours
+on dimemployee(sickleavehours asc)
+
+--Järgnev SELECT päring saab kasu Salary veeru indeksist kuna palgad on indeksis langevas järjestuses. 
+--Indeksist lähtuvalt on kergem üles otsida palkasid, mis jäävad vahemikku 4000 kuni 8000 ning kasutada reaaadressi.
+select * from DimEmployee where SickLeaveHours > 20 and SickLeaveHours <50
+
+--Mitte ainult SELECT käsklus, vaid isegi DELETE ja UPDATE väljendid saavad indeksist kasu. 
+--Kui soovid uuendada või kustutada rida, siis SQL server peab esmalt leidma rea ja indeks saab aidata seda otsingut kiirendada.
+delete from DimEmployee where SickLeaveHours = 20
+update DimEmployee set SalariedFlag = 1 where SalariedFlag = 12
+
+--See välistab päringu käivitamisel ridade sorteerimise, mis oluliselt  suurendab  protsessiaega.
+select * from DimEmployee order by SickLeaveHours
+
+-- BaseRate veeru indeks saab aidata ka allpool olevat päringut. Seda tehakse indeksi tagurpidi skanneerimises.
+select * from DimEmployee order by SickLeaveHours desc
+ 
+ -- GROUP BY päringud saavad kasu indeksitest. Kui soovid grupeerida töötajaid sama palgaga, siis päringumootor saab kasutada BaseRate veeru indeksit
+ select SickLeaveHours, count(SickLeaveHours) as total
+ from dimemployee
+ group by SickLeaveHours
